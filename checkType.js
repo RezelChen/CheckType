@@ -1,8 +1,41 @@
 const noop = () => true
 const getBaseType = (tok) => Object.prototype.toString.call(tok).slice(8, -1).toLocaleLowerCase()
 
-const customTypes = {}
+// '?User[]'.match(TYPE_REG)  -> ['?', 'User', '[]']
+const TYPE_REG = /^(\?)?(\w*)(\[\])?$/
+const analizeDef = (typeDef) => {
+  // TODO check match result, maybe need throw error in here
+  const [isOptional, typeName, isArrayType] = typeDef.match(TYPE_REG).slice(1, 4)
 
+  return (node) => {
+    if (isOptional && node === undefined) { return true }
+
+    if (isArrayType) {
+      if (Array.isArray(node)) {
+        return node.every((item) => checkType(typeName, item))
+      }
+      return false
+    }
+
+    return checkType(typeName, node)
+  }
+}
+
+const analizeUnion = (typeDef) => {
+  const types = typeDef.split('|').map((str) => str.trim())
+  const typeDefs = types.map((type) => analizeDef(type))
+  
+  return (node) => typeDefs.some((def) => def(node))
+}
+
+const analize = (definition) => {
+  const keys = Object.keys(definition)
+  const defs = {}
+  keys.forEach((key) => defs[key] = analizeUnion(definition[key]))
+  return (node) => keys.every((key) => defs[key](node[key]))
+}
+
+const customTypes = {}
 const defineType = (typeName, extendType, definition) => {
   
   if (definition === undefined) {
@@ -17,11 +50,15 @@ const defineType = (typeName, extendType, definition) => {
     }
   }
 
+  if (typeof definition === 'object') {
+    definition = analize(definition)
+  }
+
   if (typeof extendType !== 'string') {
     throw new Error('DEFINT_INTERFACE -- No valid extendType', typeName)
   }
 
-  if (typeof definition !== 'function' && typeof definition !== 'object') { 
+  if (typeof definition !== 'function') {
     throw new Error('DEFINT_INTERFACE -- No valid definition', typeName)
   }
 
@@ -31,45 +68,13 @@ const defineType = (typeName, extendType, definition) => {
   }
 }
 
-// '?User[]'.match(TYPE_REG)  -> ['?', 'User', '[]']
-const TYPE_REG = /^(\?)?(\w*)(\[\])?$/
-
-const checkDef = (typeDef, node) => {
-
-  const check = (type, node) => {
-    // TODO check match result, maybe need throw error in here
-    const [isOptional, typeName, isArrayType] = type.match(TYPE_REG).slice(1, 4)
-
-    if (isOptional && node === undefined) { return true }
-
-    if (isArrayType) {
-      if (Array.isArray(node)) {
-        return node.every((item) => checkType(typeName, item))
-      }
-      return false
-    }
-
-    return checkType(typeName, node)
-  }
-  
-  const types = typeDef.split('|').map((str) => str.trim())
-  return types.some((type) => check(type, node))
-}
-
-const checkDefinition = (definition, node) => {
-  if (typeof definition === 'function') { return definition(node) }
-
-  const keys = Object.keys(definition)
-  return keys.every((key) => checkDef(definition[key], node[key]))
-}
-
 const checkType = (typeName, node) => {
   if (typeName === 'any') { return true }
 
   const typeDefinition = customTypes[typeName]
   if (typeDefinition) {
     const { extendType, definition } = typeDefinition
-    return checkType(extendType, node) && checkDefinition(definition, node)
+    return checkType(extendType, node) && definition(node)
   }
 
   throw new Error('CHECK_TYPE -- Unknown type', typeName)

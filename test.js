@@ -41,5 +41,14 @@ const fakeTeacher2 = {
   students: [{ mail: '123@xmind.net' }],
 }
 
-const res = [teacher1, teacher2, fakeTeacher1, fakeTeacher2].map((t)=> checkType('Teacher', t))
-console.log(res)
+const TEACHER_CASES = [teacher1, fakeTeacher1, teacher2, fakeTeacher2]
+
+defineType('OptArray', {
+  arr: '?number[]'
+})
+
+const OPT_ARRAY_CASES = [{}, { arr: [] }, { arr: [1, 2] }, { arr: ['a', 'b'] }]
+
+console.log('test case:')
+console.log('Teacher cases:\n', TEACHER_CASES.map((c) => checkType('Teacher', c)))
+console.log('OptArray cases:\n', OPT_ARRAY_CASES.map((c) => checkType('OptArray', c)))

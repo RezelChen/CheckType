@@ -1,4 +1,4 @@
-const CASE_NUM = 100000
+const CASE_NUM = 1000000
 
 defineType('Email', 'string', (str) => str.includes('@'))   // support define function to check type
 

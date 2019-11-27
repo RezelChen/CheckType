@@ -24,8 +24,8 @@ const analizeDef = (typeDef) => {
   const [isOptional, typeName, isArrayType] = typeDef.match(TYPE_REG).slice(1, 4)
   let type = analizeName(typeName)
 
-  type = anlaizeOptional(isOptional, type)
   type = anlaizeArray(isArrayType, type)
+  type = anlaizeOptional(isOptional, type)
 
   return type
 }

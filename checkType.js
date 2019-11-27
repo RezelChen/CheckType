@@ -103,5 +103,4 @@ BASE_TYPE.forEach((bt) => {
   customTypes[bt] = (tok) => typeString === getBaseType(tok)
 })
 
-
-// module.exports = { defineType, checkType }
+module.exports = { defineType, checkType }

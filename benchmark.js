@@ -1,3 +1,6 @@
+const { checkType } = require('./checkType')
+const { TEACHER_CASES } = require('./cases')
+
 const CASE_NUM = 1000000
 
 // manual check for benchmark
@@ -27,8 +30,12 @@ const benchmark = (check) => {
   console.log(`Spends ${during} ms for ${CASE_NUM} cases.`)
 }
 
-// main
-console.log('Manul check:')
-benchmark(checkTeacher)
-console.log('CheckType:')
-benchmark(checkType)
+const main = () => {
+  // main
+  console.log('Manul check:')
+  benchmark(checkTeacher)
+  console.log('CheckType:')
+  benchmark(checkType)
+}
+
+main()
